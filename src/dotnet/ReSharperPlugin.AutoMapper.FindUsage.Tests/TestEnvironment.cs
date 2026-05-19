@@ -12,11 +12,11 @@ using NUnit.Framework;
 namespace ReSharperPlugin.AutoMapper.FindUsage.Tests
 {
     [ZoneDefinition]
-    public class AutoMapper.FindUsageTestEnvironmentZone : ITestsEnvZone, IRequire<PsiFeatureTestZone>, IRequire<IAutoMapper.FindUsageZone> { }
+    public class AutoMapperFindUsageTestEnvironmentZone : ITestsEnvZone, IRequire<PsiFeatureTestZone>, IRequire<IAutoMapperFindUsageZone> { }
 
     [ZoneMarker]
-    public class ZoneMarker : IRequire<ICodeEditingZone>, IRequire<ILanguageCSharpZone>, IRequire<AutoMapper.FindUsageTestEnvironmentZone> { }
+    public class ZoneMarker : IRequire<ICodeEditingZone>, IRequire<ILanguageCSharpZone>, IRequire<AutoMapperFindUsageTestEnvironmentZone> { }
 
     [SetUpFixture]
-    public class AutoMapper.FindUsageTestsAssembly : ExtensionTestEnvironmentAssembly<AutoMapper.FindUsageTestEnvironmentZone> { }
+    public class AutoMapperFindUsageTestsAssembly : ExtensionTestEnvironmentAssembly<AutoMapperFindUsageTestEnvironmentZone> { }
 }

@@ -6,15 +6,14 @@
     <SdkVersion>2025.3.0.1</SdkVersion>
 
     <Title>AutoMapper.FindUsage</Title>
-    <Description>Description</Description>
+    <Description>ReSharper plugin for easy navigation from destination properties to source properties in AutoMapper mappings.</Description>
 
-    <Authors>Author</Authors>
-    <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of AutoMapper.FindUsage</Copyright>
-    <PackageTags>resharper plugin</PackageTags>
+    <Authors>Sergey Rogatnev</Authors>
+    <Copyright>Copyright $([System.DateTime]::Now.Year) Sergey Rogatnev</Copyright>
+    <PackageTags>resharper plugin automapper navigation find-usages</PackageTags>
 
-    <PackageProjectUrl></PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <PackageIconUrl></PackageIconUrl>
+    <PackageProjectUrl>https://github.com/Backs/AutoMapper.FindUsage</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
 </Project>
