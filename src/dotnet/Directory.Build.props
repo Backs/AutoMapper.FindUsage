@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <LangVersion>Latest</LangVersion>
-    <NoWarn>MSB3277</NoWarn>
+    <NoWarn>MSB3277;NU1603</NoWarn>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
