@@ -1,5 +1,5 @@
 <idea-plugin require-restart="true">
-  <id>com.jetbrains.rider.plugins.automapper.findusage</id>
+  <id>me.rogatnev.automapper.findusage</id>
   <name>AutoMapper.FindUsage</name>
   <version>0.1</version>
   <vendor url="https://github.com/Backs/AutoMapper.FindUsage">Sergey Rogatnev</vendor>
