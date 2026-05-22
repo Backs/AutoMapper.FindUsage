@@ -1,5 +1,8 @@
 # AutoMapper.FindUsage for Rider and ReSharper
 
+[![Rider](https://img.shields.io/jetbrains/plugin/v/31907.svg?label=Rider&colorB=0A7BBB&style=for-the-badge&logo=rider)](https://plugins.jetbrains.com/plugin/31907)
+[![ReSharper](https://img.shields.io/jetbrains/plugin/v/31907.svg?label=ReSharper&colorB=0A7BBB&style=for-the-badge&logo=resharper)](https://plugins.jetbrains.com/plugin/31907)
+
 **AutoMapper.FindUsage** is a plugin for JetBrains Rider and ReSharper that provides seamless navigation between DTOs and Models based on your AutoMapper configurations.
 
 ## Features
@@ -17,6 +20,8 @@
 3. Press `Alt + Enter` to open Context Actions.
 4. Select **AutoMapper. Navigate to source: <Type>.<Property>** to jump to the corresponding member.
 
+![Navigate to source](navigate_1.png)
+
 ## Supported Configurations
 
 The plugin analyzes your codebase to find various mapping patterns:
@@ -31,7 +36,9 @@ CreateMap<Order, OrderDto>().ReverseMap();
 
 ## Installation
 
-Currently, the plugin is in early development. You can build it from source:
+You can install the plugin directly from the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/31907-automapper-findusage).
+
+Alternatively, you can build it from source:
 
 1. Clone the repository.
 2. Build the solution:
