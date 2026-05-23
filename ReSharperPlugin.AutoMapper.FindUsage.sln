@@ -16,6 +16,7 @@ ProjectSection(SolutionItems) = preProject
 	gradle.properties = gradle.properties
 	navigate_1.png = navigate_1.png
 	navigate_2.png = navigate_2.png
+	navigate_3.gif = navigate_3.gif
 EndProjectSection
 EndProject
 Global

@@ -20,7 +20,7 @@
 3. Press `Alt + Enter` to open Context Actions.
 4. Select **AutoMapper. Navigate to source: <Type>.<Property>** to jump to the corresponding member.
 
-![Navigate to source](navigate_1.png)
+![Navigate to source](navigate_3.gif)
 
 ## Supported Configurations
 
