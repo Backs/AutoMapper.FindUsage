@@ -16,8 +16,18 @@ public class AutoMapperNavigationActionAvailabilityTest
     [Test] public void TestAvailableOnSetter() => DoNamedTest();
     
     [Test] public void TestAvailableOnInit() => DoNamedTest();
+    
+    [Test] public void TestReverseMap() => DoNamedTest();
+
+    [Test] public void TestReverseMapChain() => DoNamedTest();
+
+    [Test] public void TestMultipleMappings() => DoNamedTest();
+
+    [Test] public void TestConfigurationExpression() => DoNamedTest();
 
     [Test] public void TestNotAvailableOnGetter() => DoNamedTest();
 
     [Test] public void TestNotAvailableWithoutMapping() => DoNamedTest();
+
+    [Test] public void TestNotAvailableOnUnmappedType() => DoNamedTest();
 }
