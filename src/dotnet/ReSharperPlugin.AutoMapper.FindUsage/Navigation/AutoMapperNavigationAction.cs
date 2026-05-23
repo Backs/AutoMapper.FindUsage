@@ -10,6 +10,7 @@ using JetBrains.ReSharper.Feature.Services.Intentions;
 using JetBrains.ReSharper.Feature.Services.Navigation;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.CSharp.Tree;
+using JetBrains.ReSharper.Psi.Modules;
 using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.TextControl;
 using JetBrains.ReSharper.Psi.Resources;
@@ -83,18 +84,26 @@ public class AutoMapperNavigationAction : IContextAction
 
     public bool IsAvailable(IUserDataHolder cache)
     {
-        var property = GetSelectedProperty();
-        if (property == null) return false;
+        if (!IsAutoMapperAvailable(_dataProvider.PsiModule))
+            return false;
 
-        // To avoid heavy computation in IsAvailable, we just return true if it's a property.
-        // The actual search will happen in CreateBulbItems.
+        var property = GetSelectedProperty();
+        if (property == null)
+            return false;
+
         return true;
+    }
+
+    private static bool IsAutoMapperAvailable(IPsiModule module)
+    {
+        return TypeFactory.CreateTypeByCLRName("AutoMapper.Profile", module).GetTypeElement() != null;
     }
 
     private IProperty GetSelectedProperty()
     {
         var node = _dataProvider.GetSelectedTreeNode<ITreeNode>();
-        if (node == null) return null;
+        if (node == null)
+            return null;
 
         var accessorDeclaration = node.GetContainingNode<IAccessorDeclaration>(true);
         if (accessorDeclaration is { Kind: AccessorKind.SETTER })
@@ -109,7 +118,8 @@ public class AutoMapperNavigationAction : IContextAction
     private static IProperty FindCorrespondingProperty(IType type, string propertyName)
     {
         var typeElement = (type as IDeclaredType)?.GetTypeElement();
-        if (typeElement == null) return null;
+        if (typeElement == null)
+            return null;
 
         return typeElement.GetMembers().OfType<IProperty>().FirstOrDefault(p => p.ShortName == propertyName);
     }
