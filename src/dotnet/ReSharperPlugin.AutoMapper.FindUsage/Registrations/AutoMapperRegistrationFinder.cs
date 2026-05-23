@@ -34,7 +34,6 @@ public class AutoMapperRegistrationFinder
         // and also directly on Profile base class
         TryFindIn("AutoMapper.ProfileExtensions");
         TryFindIn("AutoMapper.Profile");
-        // Fallback: try interface-based lookup
         TryFindIn("AutoMapper.IProfileExpression");
         TryFindIn("AutoMapper.IMapperConfigurationExpression");
 
@@ -54,7 +53,6 @@ public class AutoMapperRegistrationFinder
     {
         var psiServices = _solution.GetPsiServices();
 
-        // Look for methods declared in this type
         var createMapMethods = ownerType.Methods
             .Where(m => m.ShortName == "CreateMap")
             .ToList();
@@ -154,7 +152,6 @@ public class AutoMapperRegistrationFinder
         // Usually it's .CreateMap<S, D>().ReverseMap()
         // In PSI it looks like ReverseMap(CreateMap(S, D))
 
-        // We need to look up in the chain
         var current = invocation.Parent;
         while (current != null)
         {
