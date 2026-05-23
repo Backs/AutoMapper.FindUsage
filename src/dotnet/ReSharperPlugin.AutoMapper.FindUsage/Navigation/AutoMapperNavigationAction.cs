@@ -118,10 +118,8 @@ public class AutoMapperNavigationAction : IContextAction
     private static IProperty FindCorrespondingProperty(IType type, string propertyName)
     {
         var typeElement = (type as IDeclaredType)?.GetTypeElement();
-        if (typeElement == null)
-            return null;
 
-        return typeElement.GetMembers().OfType<IProperty>().FirstOrDefault(p => p.ShortName == propertyName);
+        return typeElement?.Properties.FirstOrDefault(p => p.ShortName == propertyName);
     }
 
     private static string GetFullName(IType type, PsiLanguageType language)

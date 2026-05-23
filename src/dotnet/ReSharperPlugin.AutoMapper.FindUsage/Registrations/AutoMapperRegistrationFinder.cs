@@ -7,7 +7,6 @@ using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp.Tree;
 using JetBrains.ReSharper.Psi.Resolve;
 using JetBrains.ReSharper.Psi.Search;
-using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.Util;
 
 namespace ReSharperPlugin.AutoMapper.FindUsage.Registrations;
@@ -160,7 +159,7 @@ public class AutoMapperRegistrationFinder
                 return true;
             }
 
-            if (current is IInvocationExpression inv && inv.InvokedExpression is IReferenceExpression re &&
+            if (current is IInvocationExpression { InvokedExpression: IReferenceExpression re } &&
                 re.Reference.GetName() == "ReverseMap")
             {
                 return true;
@@ -171,19 +170,5 @@ public class AutoMapperRegistrationFinder
         }
 
         return false;
-    }
-}
-
-public class AutoMapperMapping
-{
-    public IType Source { get; }
-    public IType Destination { get; }
-    public ITreeNode Registration { get; }
-
-    public AutoMapperMapping(IType source, IType destination, ITreeNode registration)
-    {
-        Source = source;
-        Destination = destination;
-        Registration = registration;
     }
 }
