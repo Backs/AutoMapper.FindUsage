@@ -120,10 +120,12 @@ tasks.buildPlugin {
 
         // TODO: See also org.jetbrains.changelog: https://github.com/JetBrains/gradle-changelog-plugin
         val changelogText = file("${rootDir}/CHANGELOG.md").readText()
-        val changelogMatches = Regex("(?s)(-.+?)(?=##|$)").findAll(changelogText)
-        val changeNotes = changelogMatches.map {
-            it.groups[1]!!.value.replace("(?s)- ".toRegex(), "\u2022 ").replace("`", "").replace(",", "%2C").replace(";", "%3B")
-        }.take(1).joinToString()
+        val latestSection = changelogText.split(Regex("(?m)^## \\[")).drop(1).firstOrNull() ?: ""
+        val notesContent = latestSection.lines().drop(1).joinToString("\n").trim()
+
+        val changeNotes = Regex("(?m)^- (.*)").findAll(notesContent).map {
+            it.groups[1]!!.value.replace("`", "").replace(",", "%2C").replace(";", "%3B")
+        }.joinToString("\u2022 ", prefix = "\u2022 ")
 
         val executable: String by setBuildTool.get().extra
         val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
@@ -158,11 +160,10 @@ tasks.runIde {
 tasks.patchPluginXml {
     // TODO: See also org.jetbrains.changelog: https://github.com/JetBrains/gradle-changelog-plugin
     val changelogText = file("${rootDir}/CHANGELOG.md").readText()
-    val changelogMatches = Regex("(?s)(-.+?)(?=##|\$)").findAll(changelogText)
+    val latestSection = changelogText.split(Regex("(?m)^## \\[")).drop(1).firstOrNull() ?: ""
+    val notesContent = latestSection.lines().drop(1).joinToString("\n").trim()
 
-    changeNotes.set(changelogMatches.map {
-        it.groups[1]!!.value.replace("(?s)\r?\n".toRegex(), "<br />\n")
-    }.take(1).joinToString())
+    changeNotes.set(notesContent.replace("(?s)\r?\n".toRegex(), "<br />\n"))
 }
 
 tasks.prepareSandbox {
