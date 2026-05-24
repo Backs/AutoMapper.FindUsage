@@ -1,7 +1,8 @@
 # AutoMapper.FindUsage for Rider and ReSharper
 
-[![Rider](https://img.shields.io/jetbrains/plugin/v/31907.svg?label=Rider&colorB=0A7BBB&style=for-the-badge&logo=rider)](https://plugins.jetbrains.com/plugin/31907)
-[![ReSharper](https://img.shields.io/jetbrains/plugin/v/31907.svg?label=ReSharper&colorB=0A7BBB&style=for-the-badge&logo=resharper)](https://plugins.jetbrains.com/plugin/31907)
+[![Build and Publish](https://github.com/Backs/AutoMapper.FindUsage/actions/workflows/build.yml/badge.svg)](https://github.com/Backs/AutoMapper.FindUsage/actions/workflows/build.yml)
+[![Rider](https://img.shields.io/jetbrains/plugin/v/31907.svg?label=Rider&colorB=0A7BBB&style=flat&logo=rider)](https://plugins.jetbrains.com/plugin/31907)
+[![ReSharper](https://img.shields.io/jetbrains/plugin/v/31908.svg?label=ReSharper&colorB=0A7BBB&style=flat&logo=resharper)](https://plugins.jetbrains.com/plugin/31908)
 
 **AutoMapper.FindUsage** is a plugin for JetBrains Rider and ReSharper that provides seamless navigation between DTOs and Models based on your AutoMapper configurations.
 
