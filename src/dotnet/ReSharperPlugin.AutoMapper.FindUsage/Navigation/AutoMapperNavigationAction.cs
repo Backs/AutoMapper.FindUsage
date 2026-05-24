@@ -53,6 +53,9 @@ public class AutoMapperNavigationAction : IContextAction
 
         foreach (var mapping in mappings)
         {
+            if (mapping.IgnoredProperties.Contains(property.ShortName))
+                continue;
+
             var otherType = mapping.Source;
             if (otherType == null) continue;
 

@@ -98,7 +98,8 @@ public class AutoMapperRegistrationFinder
                     {
                         if (IsTargetType(tDest, _targetType))
                         {
-                            var mapping = new AutoMapperMapping(tSource, tDest, invocation);
+                            var ignoredProperties = GetIgnoredProperties(invocation);
+                            var mapping = new AutoMapperMapping(tSource, tDest, invocation, ignoredProperties);
                             _results.Add(mapping);
                         }
 
@@ -170,5 +171,69 @@ public class AutoMapperRegistrationFinder
         }
 
         return false;
+    }
+
+    private static ISet<string> GetIgnoredProperties(IInvocationExpression invocation)
+    {
+        var ignoredProperties = new HashSet<string>();
+
+        var current = invocation.Parent;
+        while (current != null)
+        {
+            if (current is IInvocationExpression forMemberInvocation &&
+                forMemberInvocation.InvokedExpression is IReferenceExpression { Reference: var reference } &&
+                reference.GetName() == "ForMember")
+            {
+                if (IsIgnore(forMemberInvocation))
+                {
+                    var propertyName = GetPropertyName(forMemberInvocation);
+                    if (propertyName != null)
+                    {
+                        ignoredProperties.Add(propertyName);
+                    }
+                }
+            }
+
+            if (current is IExpressionStatement) break;
+            current = current.Parent;
+        }
+
+        return ignoredProperties;
+    }
+
+    private static bool IsIgnore(IInvocationExpression forMemberInvocation)
+    {
+        // ForMember(it => it.Prop, opt => opt.Ignore())
+        if (forMemberInvocation.Arguments.Count < 2) return false;
+
+        var optArg = forMemberInvocation.Arguments[1].Expression;
+        if (optArg is ILambdaExpression lambda)
+        {
+            var body = lambda.BodyExpression;
+            // Handle opt => opt.Ignore()
+            if (body is IInvocationExpression
+                {
+                    InvokedExpression: IReferenceExpression { Reference: var reference }
+                } && reference.GetName() == "Ignore")
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string GetPropertyName(IInvocationExpression forMemberInvocation)
+    {
+        // ForMember(it => it.Prop, ...)
+        if (forMemberInvocation.Arguments.Count < 1) return null;
+
+        var propArg = forMemberInvocation.Arguments[0].Expression;
+        if (propArg is ILambdaExpression { BodyExpression: IReferenceExpression refExp })
+        {
+            return refExp.Reference.GetName();
+        }
+
+        return null;
     }
 }
