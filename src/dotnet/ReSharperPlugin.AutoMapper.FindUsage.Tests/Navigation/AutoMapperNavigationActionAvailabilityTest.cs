@@ -25,6 +25,8 @@ public class AutoMapperNavigationActionAvailabilityTest
 
     [Test] public void TestConfigurationExpression() => DoNamedTest();
 
+    [Test] public void TestIgnoreProperty() => DoNamedTest();
+
     [Test] public void TestNotAvailableOnGetter() => DoNamedTest();
 
     [Test] public void TestNotAvailableWithoutMapping() => DoNamedTest();
