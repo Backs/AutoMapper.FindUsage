@@ -39,15 +39,6 @@ CreateMap<Order, OrderDto>().ReverseMap();
 
 You can install the plugin directly from the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/31907-automapper-findusage).
 
-Alternatively, you can build it from source:
-
-1. Clone the repository.
-2. Build the solution:
-   ```bash
-   dotnet build
-   ```
-3. Use the instructions in the [Development](#development) section to run and test it.
-
 ## Development
 
 To test the plugin in a sandbox environment:
