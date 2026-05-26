@@ -1,12 +1,13 @@
 name: Build and Publish
 
 on:
-  push:
-    branches: [ master, publish ]
-    tags: [ 'v*' ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the plugin to JetBrains Marketplace'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -37,7 +38,7 @@ jobs:
         run: ./gradlew testDotNet
 
       - name: Publish Plugin
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'workflow_dispatch' && inputs.publish == true
         shell: pwsh
         env:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
