@@ -90,16 +90,13 @@ public class AutoMapperNavigationAction : IContextAction
         if (!IsAutoMapperAvailable(_dataProvider.PsiModule))
             return false;
 
-        var property = GetSelectedProperty();
-        if (property == null)
-            return false;
-
-        return true;
+        return GetSelectedProperty() != null;
     }
 
     private static bool IsAutoMapperAvailable(IPsiModule module)
     {
-        return TypeFactory.CreateTypeByCLRName("AutoMapper.Profile", module).GetTypeElement() != null;
+        return TypeFactory.CreateTypeByCLRName("AutoMapper.Profile", module).GetTypeElement() != null ||
+               TypeFactory.CreateTypeByCLRName("AutoMapper.IMapper", module).GetTypeElement() != null;
     }
 
     private IProperty GetSelectedProperty()
@@ -108,12 +105,28 @@ public class AutoMapperNavigationAction : IContextAction
         if (node == null)
             return null;
 
-        var accessorDeclaration = node.GetContainingNode<IAccessorDeclaration>(true);
-        if (accessorDeclaration is { Kind: AccessorKind.SETTER })
+        var propertyDeclaration = node.GetContainingNode<IPropertyDeclaration>(true);
+        if (propertyDeclaration == null)
         {
-            var propertyDeclaration = accessorDeclaration.GetContainingNode<IPropertyDeclaration>();
-            return propertyDeclaration?.DeclaredElement;
+            var accessorDeclaration = node.GetContainingNode<IAccessorDeclaration>(true);
+            propertyDeclaration = accessorDeclaration?.GetContainingNode<IPropertyDeclaration>();
         }
+
+        if (propertyDeclaration == null)
+            return null;
+
+        var property = propertyDeclaration.DeclaredElement;
+        if (property == null)
+            return null;
+
+        // Allow if we're on the property name identifier
+        if (propertyDeclaration.NameIdentifier.Contains(node))
+            return property;
+
+        // Or if we're on a setter or init accessor (both have AccessorKind.SETTER)
+        var accessor = node.GetContainingNode<IAccessorDeclaration>(true);
+        if (accessor != null && accessor.Kind == AccessorKind.SETTER)
+            return property;
 
         return null;
     }
