@@ -11,8 +11,8 @@ on:
 
 jobs:
   build:
-    name: Build & Publish
-    runs-on: windows-latest
+    name: "Build & Publish"
+    runs-on: windows-2022
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
