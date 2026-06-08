@@ -15,8 +15,6 @@ using JetBrains.Util.PersistentMap;
 
 using JetBrains.Application.Threading;
 using JetBrains.Lifetimes;
-using JetBrains.ReSharper.Psi.ExtensionsAPI;
-
 using JetBrains.ReSharper.Psi.Files;
 
 namespace ReSharperPlugin.AutoMapper.FindUsage.Registrations;
@@ -137,7 +135,13 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
 
         private static string GetTypeClrName(IType type)
         {
-            return type.GetScalarType()?.GetClrName().FullName;
+            var scalarType = type.GetScalarType();
+            if (scalarType == null) return null;
+            
+            var clrName = scalarType.GetClrName().FullName;
+            if (!string.IsNullOrEmpty(clrName)) return clrName;
+            
+            return "DEBUG:" + scalarType.ToString();
         }
 
         public void ProcessAfterInterior(ITreeNode element)
