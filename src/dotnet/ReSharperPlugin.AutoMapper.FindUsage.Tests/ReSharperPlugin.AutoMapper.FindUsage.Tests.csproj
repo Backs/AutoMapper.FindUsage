@@ -21,4 +21,9 @@
     <None Include="test/**/*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Navigation\" />
+    <Folder Include="test\data\Navigation\" />
+  </ItemGroup>
+
 </Project>

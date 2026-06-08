@@ -3,13 +3,8 @@ using System.Linq;
 using JetBrains.Application.Parts;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Psi;
-using JetBrains.ReSharper.Psi.Caches;
 using JetBrains.ReSharper.Psi.CSharp.Tree;
-using JetBrains.ReSharper.Psi.Resolve;
-using JetBrains.ReSharper.Psi.CSharp;
 using JetBrains.ReSharper.Psi.Files;
-using JetBrains.ReSharper.Psi.Search;
-using JetBrains.Util;
 
 namespace ReSharperPlugin.AutoMapper.FindUsage.Registrations;
 
@@ -27,14 +22,18 @@ public class AutoMapperRegistrationFinder
 
     public IReadOnlyCollection<AutoMapperMapping> FindMappingsForType(ITypeElement typeElement)
     {
-        var typeClrName = typeElement.GetClrName().FullName;
+        return FindMappingsForType(typeElement.GetClrName().FullName);
+    }
+
+    public IReadOnlyCollection<AutoMapperMapping> FindMappingsForType(string typeClrName)
+    {
         var results = new List<AutoMapperMapping>();
 
         foreach (var tuple in _cache.GetMappingsForType(typeClrName))
         {
             var sourceFile = tuple.Item1;
             var serializableMapping = tuple.Item2;
-            
+
             // Try to get PSI file more reliably
             var psiFile = sourceFile.GetPrimaryPsiFile() as ICSharpFile;
             if (psiFile == null) continue;
@@ -43,17 +42,21 @@ public class AutoMapperRegistrationFinder
             var invocation = node?.GetContainingNode<IInvocationExpression>();
             if (invocation == null) continue;
 
-            var sourceType = TypeFactory.CreateTypeByCLRName(serializableMapping.SourceTypeClrName, sourceFile.PsiModule);
-            var destType = TypeFactory.CreateTypeByCLRName(serializableMapping.DestinationTypeClrName, sourceFile.PsiModule);
+            var sourceType =
+                TypeFactory.CreateTypeByCLRName(serializableMapping.SourceTypeClrName, sourceFile.PsiModule);
+            var destType =
+                TypeFactory.CreateTypeByCLRName(serializableMapping.DestinationTypeClrName, sourceFile.PsiModule);
 
             if (serializableMapping.DestinationTypeClrName == typeClrName)
             {
-                results.Add(new AutoMapperMapping(sourceType, destType, invocation, serializableMapping.IgnoredProperties.ToHashSet()));
+                results.Add(new AutoMapperMapping(sourceType, destType, invocation,
+                    serializableMapping.IgnoredProperties.ToHashSet()));
             }
 
-            if (serializableMapping.HasReverseMap && serializableMapping.SourceTypeClrName == typeClrName)
+            if (serializableMapping.SourceTypeClrName == typeClrName)
             {
-                results.Add(new AutoMapperMapping(destType, sourceType, invocation));
+                results.Add(new AutoMapperMapping(destType, sourceType, invocation,
+                    serializableMapping.HasReverseMap ? null : serializableMapping.IgnoredProperties.ToHashSet()));
             }
         }
 
