@@ -45,13 +45,15 @@ To test the plugin in a sandbox environment:
 
 1. **Build the .NET part**:
    ```bash
-   .\gradlew.bat compileDotNet
+   ./gradlew compileDotNet
    ```
+   *(On Windows, use `.\gradlew.bat compileDotNet`)*
 
 2. **Launch Rider with the plugin**:
    ```bash
-   .\gradlew.bat runIde
+   ./gradlew runIde
    ```
+   *(On Windows, use `.\gradlew.bat runIde`)*
    *This will start an experimental instance of Rider with the plugin installed.*
 
 3. **Verify functionality**:
