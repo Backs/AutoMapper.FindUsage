@@ -67,25 +67,25 @@ public class AutoMapperSearchFactoryTest : BaseTestWithSingleProject
 
         public void ProcessBeforeInterior(ITreeNode element)
         {
-            IDeclaredElement declaredElement = null;
-            if (element is ITypeDeclaration typeDeclaration)
-                declaredElement = typeDeclaration.DeclaredElement;
-            else if (element is IPropertyDeclaration propertyDeclaration)
-                declaredElement = propertyDeclaration.DeclaredElement;
-            else if (element is IAccessorDeclaration accessorDeclaration)
-                declaredElement = accessorDeclaration.DeclaredElement;
+            IDeclaredElement declaredElement = element switch
+            {
+                ITypeDeclaration typeDeclaration => typeDeclaration.DeclaredElement,
+                IPropertyDeclaration propertyDeclaration => propertyDeclaration.DeclaredElement,
+                IAccessorDeclaration accessorDeclaration => accessorDeclaration.DeclaredElement,
+                _ => null
+            };
 
             if (declaredElement != null)
             {
                 var clrName = (declaredElement as ITypeElement)?.GetClrName()?.FullName ?? "N/A";
                 _writer.WriteLine($"Element: {declaredElement.ShortName}, CLR: {clrName}");
                 var related = _factory.GetRelatedFindResults(declaredElement).ToList();
-                if (related.Count > 1) // 1 because it always returns itself
+                if (related.Count > 0)
                 {
                     _writer.WriteLine($"Element: {declaredElement.ShortName} ({declaredElement.GetElementType().PresentableName})");
                     foreach (var result in related.OrderBy(r => r.ToString()))
                     {
-                        if (result is FindResultDeclaredElement frde && !Equals(frde.DeclaredElement, declaredElement))
+                        if (result is FindResultDeclaredElement frde)
                         {
                              _writer.WriteLine($"  Related: {frde.DeclaredElement.ShortName} ({frde.DeclaredElement.GetElementType().PresentableName})");
                         }
