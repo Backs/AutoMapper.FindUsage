@@ -29,6 +29,7 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
         if (element is IMethod method && GetPropertyFromAccessor(method) is { } ownerProperty)
             element = ownerProperty;
 
+        var seenResults = new HashSet<FindResult>();
 
         if (element is ITypeElement typeElement)
         {
@@ -36,14 +37,16 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
 
             foreach (var mapping in mappings)
             {
-                if (mapping.Source is IDeclaredType sourceDeclaredType && sourceDeclaredType.GetTypeElement() is { } sourceElement)
+                if (mapping.Source is IDeclaredType sourceDeclaredType && sourceDeclaredType.GetTypeElement() is { } sourceElement && !sourceElement.Equals(typeElement))
                 {
-                    yield return new FindResultDeclaredElement(sourceElement);
+                    foreach (var result in CreateFindResults(sourceElement))
+                        if (seenResults.Add(result)) yield return result;
                 }
 
-                if (mapping.Destination is IDeclaredType destinationDeclaredType && destinationDeclaredType.GetTypeElement() is { } destinationElement)
+                if (mapping.Destination is IDeclaredType destinationDeclaredType && destinationDeclaredType.GetTypeElement() is { } destinationElement && !destinationElement.Equals(typeElement))
                 {
-                    yield return new FindResultDeclaredElement(destinationElement);
+                    foreach (var result in CreateFindResults(destinationElement))
+                        if (seenResults.Add(result)) yield return result;
                 }
             }
         }
@@ -58,18 +61,39 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
                     continue;
                 }
 
-                if (mapping.Source is IDeclaredType otherDeclaredType && otherDeclaredType.GetTypeElement() is { } otherTypeElement)
+                var types = new[] { mapping.Source, mapping.Destination };
+                foreach (var type in types)
                 {
-                    var otherProperty = otherTypeElement.Properties.FirstOrDefault(p => p.ShortName == property.ShortName);
-                    if (otherProperty != null)
+                    if (type is IDeclaredType declaredType && declaredType.GetTypeElement() is { } otherTypeElement && !otherTypeElement.Equals(containingType))
                     {
-                        yield return new FindResultDeclaredElement(otherProperty);
+                        var otherProperty = otherTypeElement.Properties.FirstOrDefault(p => p.ShortName == property.ShortName);
+                        if (otherProperty != null)
+                        {
+                            foreach (var result in CreatePropertyRelatedFindResults(otherProperty))
+                                if (seenResults.Add(result)) yield return result;
+                        }
                     }
                 }
             }
         }
+    }
 
-        yield return new FindResultDeclaredElement(element);
+    private static IEnumerable<FindResult> CreateFindResults(IDeclaredElement element)
+    {
+        var hasDeclaration = false;
+        foreach (var declaration in element.GetDeclarations())
+        {
+            yield return new FindResultDeclaration(element, declaration, declaration.GetNavigationRange());
+            hasDeclaration = true;
+        }
+
+        if (!hasDeclaration)
+            yield return new FindResultDeclaredElement(element);
+    }
+
+    private static IEnumerable<FindResult> CreatePropertyRelatedFindResults(IProperty property)
+    {
+        return CreateFindResults(property);
     }
 
     private static IProperty GetPropertyFromAccessor(IDeclaredElement element)
