@@ -14,6 +14,7 @@ using JetBrains.Util;
 using JetBrains.Util.PersistentMap;
 
 using JetBrains.Application.Threading;
+using JetBrains.Collections;
 using JetBrains.Lifetimes;
 using JetBrains.ReSharper.Psi.Files;
 
@@ -33,22 +34,22 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
 
         public void Marshal(UnsafeWriter writer, List<SerializableMapping> value)
         {
-            writer.Write(value.Count);
+            writer.WriteInt32(value.Count);
             foreach (var mapping in value)
                 mapping.Write(writer);
         }
 
         public List<SerializableMapping> Unmarshal(UnsafeReader reader)
         {
-            int count = reader.ReadInt32();
+            var count = reader.ReadInt32();
             var result = new List<SerializableMapping>(count);
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
                 result.Add(SerializableMapping.Read(reader));
             return result;
         }
     }
 
-    public override string Version => "5";
+    public override string Version => "6";
 
     protected override bool IsApplicable(IPsiSourceFile sourceFile)
     {
@@ -71,10 +72,8 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
 
     public IEnumerable<(IPsiSourceFile, SerializableMapping)> GetMappingsForType(string typeClrName)
     {
-        foreach (var entry in Map)
+        foreach (var (sourceFile, mappings) in Map)
         {
-            var sourceFile = entry.Key;
-            var mappings = entry.Value;
             if (mappings == null) continue;
             foreach (var mapping in mappings)
             {
@@ -125,7 +124,6 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
                             SourceTypeClrName = sourceName,
                             DestinationTypeClrName = destName,
                             IgnoredProperties = ignoredProperties.ToList(),
-                            InvocationOffset = invocation.GetTreeStartOffset().Offset,
                             HasReverseMap = HasReverseMap(invocation)
                         });
                     }
@@ -153,20 +151,7 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
             var type = method.ContainingType;
             if (type == null) return false;
             var clrName = type.GetClrName().FullName;
-            if (clrName == "AutoMapper.ProfileExtensions" ||
-                clrName == "AutoMapper.Profile" ||
-                clrName == "AutoMapper.IProfileExpression" ||
-                clrName == "AutoMapper.IMapperConfigurationExpression")
-            {
-                return true;
-            }
-
-            // Fallback for tests or simplified stubs
-            var shortName = type.ShortName;
-            return shortName == "ProfileExtensions" ||
-                   shortName == "Profile" ||
-                   shortName == "IProfileExpression" ||
-                   shortName == "IMapperConfigurationExpression";
+            return clrName is "AutoMapper.ProfileExtensions" or "AutoMapper.Profile" or "AutoMapper.IProfileExpression" or "AutoMapper.IMapperConfigurationExpression";
         }
 
         private static bool TryGetMappingTypes(ISubstitution substitution, IMethod method, IInvocationExpression invocation,
