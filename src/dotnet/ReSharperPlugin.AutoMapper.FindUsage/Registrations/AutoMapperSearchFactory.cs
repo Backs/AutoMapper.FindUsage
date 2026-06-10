@@ -3,6 +3,7 @@ using System.Linq;
 using JetBrains.Application.Parts;
 using JetBrains.ReSharper.Psi;
 using JetBrains.ReSharper.Psi.CSharp;
+using JetBrains.ReSharper.Psi.CSharp.Impl.Occurrences;
 using JetBrains.ReSharper.Psi.CSharp.Tree;
 using JetBrains.ReSharper.Psi.ExtensionsAPI;
 using JetBrains.ReSharper.Psi.Search;
@@ -93,12 +94,12 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
         var hasDeclaration = false;
         foreach (var declaration in element.GetDeclarations())
         {
-            yield return new FindResultDeclaration(element, declaration, declaration.GetNavigationRange());
+            yield return new FindResultInitializer(declaration);
             hasDeclaration = true;
         }
 
         if (!hasDeclaration)
-            yield return new FindResultDeclaredElement(element);
+            yield return new FindResultInitializer(element.GetSingleDeclaration());
     }
 
     private static IEnumerable<FindResult> CreatePropertyRelatedFindResults(IProperty property)
