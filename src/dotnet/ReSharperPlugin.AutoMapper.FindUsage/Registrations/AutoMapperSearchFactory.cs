@@ -31,49 +31,59 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
 
         var seenResults = new HashSet<FindResult>();
 
-        if (element is ITypeElement typeElement)
+        switch (element)
         {
-            var mappings = _registrationFinder.FindMappingsForType(typeElement);
+            case ITypeElement typeElement:
+                return GetTypeResults(typeElement, seenResults);
+            case IProperty { ContainingType: { } containingType } property:
+                return GetPropertyResults(containingType, property, seenResults);
+        }
+        return [];
+    }
 
-            foreach (var mapping in mappings)
+    private IEnumerable<FindResult> GetPropertyResults(ITypeElement containingType, IProperty property, HashSet<FindResult> seenResults)
+    {
+        var mappings = _registrationFinder.FindMappingsForType(containingType);
+
+        foreach (var mapping in mappings)
+        {
+            if (mapping.IgnoredProperties.Contains(property.ShortName))
             {
-                if (mapping.Source is IDeclaredType sourceDeclaredType && sourceDeclaredType.GetTypeElement() is { } sourceElement && !sourceElement.Equals(typeElement))
-                {
-                    foreach (var result in CreateFindResults(sourceElement))
-                        if (seenResults.Add(result)) yield return result;
-                }
+                continue;
+            }
 
-                if (mapping.Destination is IDeclaredType destinationDeclaredType && destinationDeclaredType.GetTypeElement() is { } destinationElement && !destinationElement.Equals(typeElement))
+            foreach (var type in new[] { mapping.Source, mapping.Destination })
+            {
+                if (type is IDeclaredType declaredType && declaredType.GetTypeElement() is { } otherTypeElement && !otherTypeElement.Equals(containingType))
                 {
-                    foreach (var result in CreateFindResults(destinationElement))
-                        if (seenResults.Add(result)) yield return result;
+                    var otherProperty = otherTypeElement.Properties.FirstOrDefault(p => p.ShortName == property.ShortName);
+                    if (otherProperty != null)
+                    {
+                        foreach (var result in CreatePropertyRelatedFindResults(otherProperty))
+                            if (seenResults.Add(result)) 
+                                yield return result;
+                    }
                 }
             }
         }
-        else if (element is IProperty { ContainingType: { } containingType } property)
+    }
+
+    private IEnumerable<FindResult> GetTypeResults(ITypeElement typeElement, HashSet<FindResult> seenResults)
+    {
+        var mappings = _registrationFinder.FindMappingsForType(typeElement);
+
+        foreach (var mapping in mappings)
         {
-            var mappings = _registrationFinder.FindMappingsForType(containingType);
-
-            foreach (var mapping in mappings)
+            if (mapping.Source is IDeclaredType sourceDeclaredType && sourceDeclaredType.GetTypeElement() is { } sourceElement && !sourceElement.Equals(typeElement))
             {
-                if (mapping.IgnoredProperties.Contains(property.ShortName))
-                {
-                    continue;
-                }
+                foreach (var result in CreateFindResults(sourceElement))
+                    if (seenResults.Add(result)) yield return result;
+            }
 
-                var types = new[] { mapping.Source, mapping.Destination };
-                foreach (var type in types)
-                {
-                    if (type is IDeclaredType declaredType && declaredType.GetTypeElement() is { } otherTypeElement && !otherTypeElement.Equals(containingType))
-                    {
-                        var otherProperty = otherTypeElement.Properties.FirstOrDefault(p => p.ShortName == property.ShortName);
-                        if (otherProperty != null)
-                        {
-                            foreach (var result in CreatePropertyRelatedFindResults(otherProperty))
-                                if (seenResults.Add(result)) yield return result;
-                        }
-                    }
-                }
+            if (mapping.Destination is IDeclaredType destinationDeclaredType && destinationDeclaredType.GetTypeElement() is { } destinationElement && !destinationElement.Equals(typeElement))
+            {
+                foreach (var result in CreateFindResults(destinationElement))
+                    if (seenResults.Add(result)) yield return result;
             }
         }
     }
