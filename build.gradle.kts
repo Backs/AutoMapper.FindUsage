@@ -2,6 +2,8 @@ import com.jetbrains.plugin.structure.base.utils.isFile
 import groovy.ant.FileNameFinder
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.intellij.platform.gradle.Constants
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
 
 plugins {
@@ -35,7 +37,7 @@ repositories {
 }
 
 tasks.wrapper {
-    gradleVersion = "8.8"
+    gradleVersion = "8.13"
     distributionType = Wrapper.DistributionType.ALL
     distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
@@ -54,8 +56,15 @@ sourceSets {
     }
 }
 
-tasks.compileKotlin {
-    kotlinOptions { jvmTarget = "17" }
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
 }
 
 val setBuildTool by tasks.registering {
@@ -65,7 +74,7 @@ val setBuildTool by tasks.registering {
 
         if (isWindows) {
             val stdout = ByteArrayOutputStream()
-            exec {
+            serviceOf<ExecOperations>().exec {
                 executable("${rootDir}\\tools\\vswhere.exe")
                 args("-latest", "-property", "installationPath", "-products", "*")
                 standardOutput = stdout
@@ -91,9 +100,10 @@ val compileDotNet by tasks.registering {
     dependsOn(setBuildTool)
     doLast {
         val executable: String by setBuildTool.get().extra
+        @Suppress("UNCHECKED_CAST")
         val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
         arguments.add("/t:Restore;Rebuild")
-        exec {
+        serviceOf<ExecOperations>().exec {
             executable(executable)
             args(arguments)
             workingDir(rootDir)
@@ -103,7 +113,7 @@ val compileDotNet by tasks.registering {
 
 val testDotNet by tasks.registering {
     doLast {
-        exec {
+        serviceOf<ExecOperations>().exec {
             executable("dotnet")
             args("test","${DotnetSolution}","--logger","GitHubActions")
             workingDir(rootDir)
@@ -114,7 +124,7 @@ val testDotNet by tasks.registering {
 tasks.buildPlugin {
     doLast {
         copy {
-            from("${buildDir}/distributions/${rootProject.name}-${version}.zip")
+            from(layout.buildDirectory.file("distributions/${rootProject.name}-${version}.zip"))
             into("${rootDir}/output")
         }
 
@@ -128,12 +138,13 @@ tasks.buildPlugin {
         }.joinToString("\u2022 ", prefix = "\u2022 ")
 
         val executable: String by setBuildTool.get().extra
+        @Suppress("UNCHECKED_CAST")
         val arguments = (setBuildTool.get().extra["args"] as List<String>).toMutableList()
         arguments.add("/t:Pack")
         arguments.add("/p:PackageOutputPath=${rootDir}/output")
         arguments.add("/p:PackageReleaseNotes=${changeNotes}")
         arguments.add("/p:PackageVersion=${version}")
-        exec {
+        serviceOf<ExecOperations>().exec {
             executable(executable)
             args(arguments)
             workingDir(rootDir)
@@ -143,7 +154,9 @@ tasks.buildPlugin {
 
 dependencies {
     intellijPlatform {
-        rider(ProductVersion, useInstaller = false)
+        rider(ProductVersion) {
+            useInstaller = false
+        }
         jetbrainsRuntime()
 
         // TODO: add plugins
@@ -196,7 +209,7 @@ tasks.publishPlugin {
     token.set("${PublishToken}")
 
     doLast {
-        exec {
+        serviceOf<ExecOperations>().exec {
             executable("dotnet")
             args("nuget","push","output/${DotnetPluginId}.${version}.nupkg","--api-key","${PublishToken}","--source","https://plugins.jetbrains.com")
             workingDir(rootDir)

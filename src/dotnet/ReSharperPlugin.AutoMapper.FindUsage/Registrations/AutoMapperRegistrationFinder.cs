@@ -42,10 +42,9 @@ public class AutoMapperRegistrationFinder
                     serializableMapping.IgnoredProperties));
             }
 
-            if (serializableMapping.SourceTypeClrName == typeClrName)
+            if (serializableMapping.SourceTypeClrName == typeClrName && serializableMapping.HasReverseMap)
             {
-                results.Add(new AutoMapperMapping(destType, sourceType,
-                    serializableMapping.HasReverseMap ? null : serializableMapping.IgnoredProperties));
+                results.Add(new AutoMapperMapping(destType, sourceType, null));
             }
         }
 
