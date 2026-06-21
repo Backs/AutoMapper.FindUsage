@@ -104,7 +104,20 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
 
     private static IEnumerable<FindResult> CreatePropertyRelatedFindResults(IProperty property)
     {
-        return CreateFindResults(property);
+        foreach (var declaration in property.GetDeclarations())
+        {
+            if (declaration is IPropertyDeclaration propertyDeclaration)
+            {
+                var nameNode = propertyDeclaration.NameIdentifier;
+                if (nameNode != null)
+                {
+                    yield return new FindResultInitializer(nameNode);
+                    yield break;
+                }
+            }
+        }
+
+        yield return new FindResultDeclaredElement(property);
     }
 
     private static IProperty GetPropertyFromAccessor(IDeclaredElement element)
