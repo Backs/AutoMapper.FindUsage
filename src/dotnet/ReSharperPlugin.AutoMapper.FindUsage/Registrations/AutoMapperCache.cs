@@ -12,7 +12,6 @@ using JetBrains.ReSharper.Psi.Tree;
 using JetBrains.Serialization;
 using JetBrains.Util;
 using JetBrains.Util.PersistentMap;
-
 using JetBrains.Application.Threading;
 using JetBrains.Collections;
 using JetBrains.Lifetimes;
@@ -49,7 +48,7 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
         }
     }
 
-    public override string Version => "6";
+    public override string Version => "7";
 
     protected override bool IsApplicable(IPsiSourceFile sourceFile)
     {
@@ -67,6 +66,7 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
             }
         }
 
+        results.TrimExcess();
         return results.Count > 0 ? results : null;
     }
 
@@ -77,12 +77,23 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
             if (mappings == null) continue;
             foreach (var mapping in mappings)
             {
-                if (string.Equals(mapping.SourceTypeClrName, typeClrName, StringComparison.Ordinal) || 
-                    string.Equals(mapping.DestinationTypeClrName, typeClrName, StringComparison.Ordinal))
+                if (mapping.SourceTypeClrName == typeClrName || mapping.DestinationTypeClrName == typeClrName)
                 {
                     yield return (sourceFile, mapping);
                 }
             }
+        }
+    }
+
+    public void EnsureMappingsBuilt(IEnumerable<IPsiSourceFile> sourceFiles)
+    {
+        foreach (var sourceFile in sourceFiles)
+        {
+            if (sourceFile == null || Map.ContainsKey(sourceFile))
+                continue;
+
+            if (Build(sourceFile, isPreParent: false) is List<SerializableMapping> built && built.Count > 0)
+                Map[sourceFile] = built;
         }
     }
 
@@ -103,11 +114,11 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
             if (element is IInvocationExpression invocation)
             {
                 var reference = invocation.Reference;
-                if (reference == null || reference.GetName() != "CreateMap") return;
+                if (reference.GetName() != "CreateMap") return;
 
                 var resolveResult = reference.Resolve();
                 var method = resolveResult.DeclaredElement as IMethod;
-                
+
                 if (method != null && !IsAutoMapperMethod(method))
                     return;
 
@@ -116,7 +127,7 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
                     var sourceName = GetTypeClrName(tSource);
                     var destName = GetTypeClrName(tDest);
 
-                    if (sourceName != null && destName != null)
+                    if (sourceName != null && destName != null && sourceName != destName)
                     {
                         var ignoredProperties = GetIgnoredProperties(invocation);
                         _results.Add(new SerializableMapping
@@ -135,11 +146,11 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
         {
             var scalarType = type.GetScalarType();
             if (scalarType == null) return null;
-            
+
             var clrName = scalarType.GetClrName().FullName;
             if (!string.IsNullOrEmpty(clrName)) return clrName;
-            
-            return "DEBUG:" + scalarType.ToString();
+
+            return null;
         }
 
         public void ProcessAfterInterior(ITreeNode element)
@@ -151,10 +162,14 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
             var type = method.ContainingType;
             if (type == null) return false;
             var clrName = type.GetClrName().FullName;
-            return clrName is "AutoMapper.ProfileExtensions" or "AutoMapper.Profile" or "AutoMapper.IProfileExpression" or "AutoMapper.IMapperConfigurationExpression";
+            return clrName is "AutoMapper.ProfileExtensions" or
+                "AutoMapper.Profile" or
+                "AutoMapper.IProfileExpression" or
+                "AutoMapper.IMapperConfigurationExpression";
         }
 
-        private static bool TryGetMappingTypes(ISubstitution substitution, IMethod method, IInvocationExpression invocation,
+        private static bool TryGetMappingTypes(ISubstitution substitution, IMethod method,
+            IInvocationExpression invocation,
             out IType sourceType, out IType destinationType)
         {
             sourceType = null;
@@ -238,7 +253,10 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
             if (optArg is ILambdaExpression lambda)
             {
                 var body = lambda.BodyExpression;
-                if (body is IInvocationExpression { InvokedExpression: IReferenceExpression { Reference: var reference } } &&
+                if (body is IInvocationExpression
+                    {
+                        InvokedExpression: IReferenceExpression { Reference: var reference }
+                    } &&
                     reference.GetName() == "Ignore")
                     return true;
             }
