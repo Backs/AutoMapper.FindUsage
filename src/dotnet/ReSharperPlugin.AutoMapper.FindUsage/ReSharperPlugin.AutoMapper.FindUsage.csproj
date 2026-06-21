@@ -16,8 +16,11 @@
     <Content Include="..\..\..\dependencies.json" PackagePath="" Pack="true" Visible="false" />
     <Content Include="bin\$(AssemblyName)\$(Configuration)\$(AssemblyName).dll" PackagePath="dotFiles" Pack="true" Visible="false" />
     <Content Include="bin\$(AssemblyName)\$(Configuration)\$(AssemblyName).pdb" PackagePath="dotFiles" Pack="true" Visible="false" />
-
-    <!-- TODO: add additional assemblies -->
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ReSharperPlugin.AutoMapper.FindUsage.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
