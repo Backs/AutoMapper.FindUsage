@@ -14,9 +14,8 @@ ProjectSection(SolutionItems) = preProject
 	src\rider\main\resources\META-INF\plugin.xml = src\rider\main\resources\META-INF\plugin.xml
 	build.gradle.kts = build.gradle.kts
 	gradle.properties = gradle.properties
-	navigate_1.png = navigate_1.png
-	navigate_2.png = navigate_2.png
-	navigate_3.gif = navigate_3.gif
+	find_usages.gif = find_usages.gif
+	find_usages.png = find_usages.png
 EndProjectSection
 EndProject
 Global
