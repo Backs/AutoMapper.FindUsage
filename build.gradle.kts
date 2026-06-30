@@ -134,8 +134,8 @@ tasks.buildPlugin {
         val notesContent = latestSection.lines().drop(1).joinToString("\n").trim()
 
         val changeNotes = Regex("(?m)^- (.*)").findAll(notesContent).map {
-            it.groups[1]!!.value.replace("`", "").replace(",", "%2C").replace(";", "%3B")
-        }.joinToString("\u2022 ", prefix = "\u2022 ")
+            it.groups[1]!!.value.replace("`", "").replace("\"", "'").replace(";", "%3B")
+        }.joinToString("* ", prefix = "* ")
 
         val executable: String by setBuildTool.get().extra
         @Suppress("UNCHECKED_CAST")
@@ -209,9 +209,12 @@ tasks.publishPlugin {
     token.set("${PublishToken}")
 
     doLast {
+        val nupkgFile = fileTree("${rootDir}/output").matching { include("**/*.nupkg") }.firstOrNull()
+            ?: throw RuntimeException("NuGet package not found in output directory")
+
         serviceOf<ExecOperations>().exec {
             executable("dotnet")
-            args("nuget","push","output/${DotnetPluginId}.${version}.nupkg","--api-key","${PublishToken}","--source","https://plugins.jetbrains.com")
+            args("nuget", "push", nupkgFile.absolutePath, "--api-key", "${PublishToken}", "--source", "https://plugins.jetbrains.com")
             workingDir(rootDir)
         }
     }
