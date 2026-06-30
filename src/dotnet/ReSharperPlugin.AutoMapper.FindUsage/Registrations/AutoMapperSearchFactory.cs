@@ -56,7 +56,7 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
             var isSource = mapping.Source is IDeclaredType s && s.GetTypeElement()?.Equals(containingType) == true;
             var isDestination = mapping.Destination is IDeclaredType d && d.GetTypeElement()?.Equals(containingType) == true;
 
-            if (isSource)
+            if (isSource && mapping.HasReverseMap)
             {
                 if (mapping.Destination is IDeclaredType destType && destType.GetTypeElement() is { } destElement && !destElement.Equals(containingType))
                 {
@@ -85,7 +85,7 @@ public class AutoMapperSearchFactory : DomainSpecificSearcherFactoryBase
             var isSource = mapping.Source is IDeclaredType s && s.GetTypeElement()?.Equals(typeElement) == true;
             var isDestination = mapping.Destination is IDeclaredType d && d.GetTypeElement()?.Equals(typeElement) == true;
 
-            if (isSource)
+            if (isSource && mapping.HasReverseMap)
             {
                 if (mapping.Destination is IDeclaredType destType && destType.GetTypeElement() is { } destElement && !destElement.Equals(typeElement))
                 {

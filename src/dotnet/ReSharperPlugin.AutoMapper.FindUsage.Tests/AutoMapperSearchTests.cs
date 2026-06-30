@@ -32,15 +32,11 @@ public class AutoMapperSearchTests : BaseTestWithSingleProject
                 solution.GetComponent<AutoMapperRegistrationFinder>().EnsureProjectMappings(source);
 
                 var results = searchFactory.GetRelatedFindResults(source).ToList();
+                results.Should().BeEmpty("Should NOT find Destination when searching for Source in one-way mapping (no ReverseMap)");
 
                 var destination = PsiTestHelper.GetTypeElement(solution, "TestNamespace.Destination");
                 destination.Should().NotBeNull("Destination type not found");
-                var destinationDecls = destination.GetDeclarations().ToList();
-                var foundDestination = results
-                    .OfType<FindResultInitializer>()
-                    .Any(r => destinationDecls.Any(d => d.Contains(r.Declaration)));
-                foundDestination.Should().BeTrue("Should find Destination when searching for Source (one-way mapping)");
-
+                
                 var resultsForDest = searchFactory.GetRelatedFindResults(destination).ToList();
                 resultsForDest.Should().NotBeEmpty("Should find Source when searching for Destination (one-way mapping)");
 
@@ -81,6 +77,62 @@ public class AutoMapperSearchTests : BaseTestWithSingleProject
                     r is FindResultInitializer { Declaration: var node } && sourceNameProp.GetDeclarations().Any(d => d.Contains(node)));
                 
                 foundSource.Should().BeTrue("Should find Source.Name when searching for Destination.Name (one-way mapping)");
+            });
+        });
+    }
+
+    [Test]
+    public void PropertyNavigationFromSourcePropertyTest()
+    {
+        WithSingleProject(["OneWayMapping.cs"], (_, solution, _) =>
+        {
+            var locks = solution.GetComponent<IShellLocks>();
+            locks.ExecuteWithReadLock(() =>
+            {
+                var searchFactory = solution.GetComponent<AutoMapperSearchFactory>();
+
+                var source = PsiTestHelper.GetTypeElement(solution, "TestNamespace.Source");
+                source.Should().NotBeNull("Source type not found");
+                solution.GetComponent<AutoMapperRegistrationFinder>().EnsureProjectMappings(source);
+
+                var nameProp = source.Properties.FirstOrDefault(p => p.ShortName == "Name");
+                nameProp.Should().NotBeNull("Source.Name not found");
+
+                var results = searchFactory.GetRelatedFindResults(nameProp).ToList();
+                results.Should().BeEmpty("Expected no results for Source.Name in one-way mapping (no ReverseMap)");
+
+                var dest = PsiTestHelper.GetTypeElement(solution, "TestNamespace.Destination");
+                var foundDest = results.Any(r => IsRelatedToProperty(r, dest, "Name"));
+
+                foundDest.Should().BeFalse("Should NOT find Destination.Name when searching for Source.Name in one-way mapping");
+            });
+        });
+    }
+
+    [Test]
+    public void PropertyNavigationNoDuplicatesWithReverseMapTest()
+    {
+        WithSingleProject(["ReverseMapping.cs"], (_, solution, _) =>
+        {
+            var locks = solution.GetComponent<IShellLocks>();
+            locks.ExecuteWithReadLock(() =>
+            {
+                var searchFactory = solution.GetComponent<AutoMapperSearchFactory>();
+
+                var source = PsiTestHelper.GetTypeElement(solution, "TestNamespaceReverse.Source");
+                source.Should().NotBeNull("Source type not found");
+                solution.GetComponent<AutoMapperRegistrationFinder>().EnsureProjectMappings(source);
+
+                var nameProp = source.Properties.FirstOrDefault(p => p.ShortName == "Name");
+                nameProp.Should().NotBeNull("Source.Name not found");
+
+                var results = searchFactory.GetRelatedFindResults(nameProp).ToList();
+                results.Should().HaveCount(1, "Should not have duplicate results for ReverseMap");
+
+                var dest = PsiTestHelper.GetTypeElement(solution, "TestNamespaceReverse.Destination");
+                var foundDest = results.Any(r => IsRelatedToProperty(r, dest, "Name"));
+
+                foundDest.Should().BeTrue("Should find Destination.Name when searching for Source.Name via ReverseMap");
             });
         });
     }
