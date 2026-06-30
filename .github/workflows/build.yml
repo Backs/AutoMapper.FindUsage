@@ -13,6 +13,8 @@ jobs:
   build:
     name: "Build & Publish"
     runs-on: windows-2022
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,11 +33,31 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Get Version
+        id: get_version
+        shell: pwsh
+        run: |
+          $version = Select-String -Path gradle.properties -Pattern "PluginVersion=(.*)" | ForEach-Object { $_.Matches.Groups[1].Value }
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+
       - name: Build Plugin
         run: ./gradlew buildPlugin
 
       - name: Run Tests
         run: ./gradlew testDotNet
+
+      - name: Create GitHub Release
+        if: github.event_name == 'workflow_dispatch' && inputs.publish == true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: v${{ steps.get_version.outputs.VERSION }}
+          files: |
+            output/*.zip
+            output/*.nupkg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Plugin
         if: github.event_name == 'workflow_dispatch' && inputs.publish == true
