@@ -29,15 +29,14 @@ public class AutoMapperCacheTests : BaseTestWithSingleProject
                 var built = cache.Build(sourceFile, isPreParent: false) as List<SerializableMapping>;
 
                 built.Should().BeEquivalentTo([
-                        new SerializableMapping
-                        {
-                            DestinationTypeClrName = "TestNamespace.Destination",
-                            HasReverseMap = false,
-                            IgnoredProperties = [],
-                            SourceTypeClrName = "TestNamespace.Source"
-                        }
-                    ]
-                );
+                    new SerializableMapping
+                    {
+                        DestinationTypeClrName = "TestNamespace.Destination",
+                        HasReverseMap = false,
+                        IgnoredProperties = [],
+                        SourceTypeClrName = "TestNamespace.Source"
+                    }
+                ]);
             });
         });
     }
@@ -55,15 +54,14 @@ public class AutoMapperCacheTests : BaseTestWithSingleProject
 
                 var built = cache.Build(sourceFile, isPreParent: false) as List<SerializableMapping>;
                 built.Should().BeEquivalentTo([
-                        new SerializableMapping
-                        {
-                            DestinationTypeClrName = "TestNamespaceReverse.Destination",
-                            HasReverseMap = true,
-                            IgnoredProperties = [],
-                            SourceTypeClrName = "TestNamespaceReverse.Source"
-                        }
-                    ]
-                );
+                    new SerializableMapping
+                    {
+                        DestinationTypeClrName = "TestNamespaceReverse.Destination",
+                        HasReverseMap = true,
+                        IgnoredProperties = new List<string>(),
+                        SourceTypeClrName = "TestNamespaceReverse.Source"
+                    }
+                ]);
             });
         });
     }
@@ -82,15 +80,14 @@ public class AutoMapperCacheTests : BaseTestWithSingleProject
                 var built = cache.Build(sourceFile, isPreParent: false) as List<SerializableMapping>;
 
                 built.Should().BeEquivalentTo([
-                        new SerializableMapping
-                        {
-                            DestinationTypeClrName = "TestNamespaceIgnored.Destination",
-                            HasReverseMap = false,
-                            IgnoredProperties = ["Ignored"],
-                            SourceTypeClrName = "TestNamespaceIgnored.Source"
-                        }
-                    ]
-                );
+                    new SerializableMapping
+                    {
+                        DestinationTypeClrName = "TestNamespaceIgnored.Destination",
+                        HasReverseMap = false,
+                        IgnoredProperties = ["Ignored"],
+                        SourceTypeClrName = "TestNamespaceIgnored.Source"
+                    }
+                ]);
             });
         });
     }
