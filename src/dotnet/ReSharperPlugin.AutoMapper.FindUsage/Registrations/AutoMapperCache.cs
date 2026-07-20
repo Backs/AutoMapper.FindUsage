@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Application.Parts;
@@ -177,7 +176,7 @@ public class AutoMapperCache : SimpleICache<List<SerializableMapping>>
 
             if (method != null)
             {
-                if (method.TypeParametersCount >= 2)
+                if (method.TypeParameters.Count >= 2)
                 {
                     sourceType = substitution[method.TypeParameters[0]];
                     destinationType = substitution[method.TypeParameters[1]];
